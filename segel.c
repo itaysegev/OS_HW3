@@ -81,10 +81,11 @@ pid_t Wait(int *status)
     return pid;
 }
 
-pid_t WaitPid(pid_t pid, int *status, int *options)
+pid_t WaitPid(pid_t pid,int *status, int options)
 {
-	if ((pid  = waitpid(pid, status, options)) < 0) unix_error("Wait error");
-	return pid;
+    if((pid=waitpid(pid,status,options))<0)
+        unix_error("Wait error");
+    return pid;
 }
 
 
