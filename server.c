@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     char* schedalg = NULL; 
     // getargs(&port, argc, argv);
     getargs(&port, &number_of_threads, &max_requests, &schedalg, argc, argv);
-    thread_pool* thread_pool = create_new_pool(number_of_threads);
+    ThreadPool* thread_pool = create_new_pool(number_of_threads);
     // 
     // HW3: Create some threads...
     //

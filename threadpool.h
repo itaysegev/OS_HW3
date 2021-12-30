@@ -11,9 +11,9 @@ typedef struct thread_pool_t {
     int current_task_counter;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-} ThreadPoll;
+} ThreadPool;
 
-ThreadPoll* create_new_pool(int num_of_threads);
+ThreadPool* create_new_pool(int num_of_threads);
 void* thread_handle_request(void* args);
 
 #endif
