@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
             pthread_mutex_unlock(&(thread_pool->mutex));
         }
 
-        else if (strcmp(schedalg, "random") == 0)) {
+        else if (strcmp(schedalg, "random") == 0) {
             pthread_mutex_lock(&(thread_pool->mutex));
             if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
                 dropRandomNodes(thread_pool->waiting_tasks_queue);
