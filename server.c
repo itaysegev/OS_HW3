@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	    else if(strcmp(schedalg,"dh") == 0) {
             pthread_mutex_lock(&(thread_pool->mutex));
             if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
-                node *oldest_request = dequeue(thread_pool->waiting_tasks_queue); // queue for waiting requests only
+                Node *oldest_request = dequeue(thread_pool->waiting_tasks_queue); // queue for waiting requests only
                 if (oldest_request == NULL) { // queue is empty so moving to dt policy
                     Close(connfd); 
                 }
