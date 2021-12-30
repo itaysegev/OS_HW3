@@ -42,7 +42,7 @@ void* thread_handle_request(void* args) {
         while(thread_pool->waiting_tasks_queue->queue_size == 0) { // no tasks to perform
             pthread_cond_wait(&(thread_pool->cond), &(thread_pool->mutex)); 
         }
-        node* curr_task = dequeue(thread_pool->waiting_tasks_queue); // the queue is not empty
+        Node* curr_task = dequeue(thread_pool->waiting_tasks_queue); // the queue is not empty
         thread_pool->current_task_counter++;
         pthread_mutex_unlock(&(thread_pool->mutex)); // from here is no longer critical code 
         struct timeval current_time; // see time.h for more info
