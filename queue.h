@@ -23,5 +23,4 @@ Node* dequeue(Queue* queue);
 int deleteNode(Queue* queue, int position);
 queue* createQueue();
 void dropRandomNodes(Queue* queue);
-//connect git-linux
 #endif
