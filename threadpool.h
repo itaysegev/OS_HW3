@@ -6,7 +6,7 @@
 
 typedef struct thread_pool_t {
     thread* threads; //array of thread
-    queue* waiting_tasks_queue;
+    Queue* waiting_tasks_queue;
     int num_of_threads;
     int current_task_counter;
     pthread_mutex_t mutex;
