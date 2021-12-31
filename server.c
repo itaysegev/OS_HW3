@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     char* schedalg = NULL; 
     // getargs(&port, argc, argv);
     getargs(&port, &number_of_threads, &max_requests, &schedalg, argc, argv);
-    thread_pool* thread_pool = create_new_pool(number_of_threads);
+    ThreadPool* thread_pool = create_new_pool(number_of_threads);
     // 
     // HW3: Create some threads...
     //
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 	    connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen); // same as the segel's code
         struct timeval current_time;
         gettimeofday(&current_time, NULL);
+
 	    if (strcmp(schedalg,"block") == 0) { // blocking policy
 	        pthread_mutex_lock(&(thread_pool->mutex));
             // not enough buffers are available test 
@@ -81,6 +82,7 @@ int main(int argc, char *argv[])
             pthread_cond_signal(&(thread_pool->cond)); // same as all policies 
             pthread_mutex_unlock(&(thread_pool->mutex));
 	    }
+
 	    else if(strcmp(schedalg,"dt") == 0) {
 	        pthread_mutex_lock(&(thread_pool->mutex));
 	        if(thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
@@ -92,10 +94,11 @@ int main(int argc, char *argv[])
             pthread_cond_signal(&(thread_pool->cond));
             pthread_mutex_unlock(&(thread_pool->mutex));
 	    }
+
 	    else if(strcmp(schedalg,"dh") == 0) {
             pthread_mutex_lock(&(thread_pool->mutex));
             if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
-                node *oldest_request = dequeue(thread_pool->waiting_tasks_queue); // queue for waiting requests only
+                Node *oldest_request = dequeue(thread_pool->waiting_tasks_queue); // queue for waiting requests only
                 if (oldest_request == NULL) { // queue is empty so moving to dt policy
                     Close(connfd); 
                 }
@@ -106,6 +109,19 @@ int main(int argc, char *argv[])
             }
             else {
                 enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);//same as all policies
+            }
+            pthread_cond_signal(&(thread_pool->cond));
+            pthread_mutex_unlock(&(thread_pool->mutex));
+        }
+
+        else if (strcmp(schedalg, "random") == 0) {
+            pthread_mutex_lock(&(thread_pool->mutex));
+            if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
+                dropRandomNodes(thread_pool->waiting_tasks_queue);
+                enqueue(connfd, current_time, thread_pool->waiting_tasks_queue); // add the new request
+            }
+            else {
+                enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);
             }
             pthread_cond_signal(&(thread_pool->cond));
             pthread_mutex_unlock(&(thread_pool->mutex));

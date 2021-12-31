@@ -1,19 +1,21 @@
 #include "segel.h"
 #include "queue.h"
+#include <math.h>
 
 
 
-queue* createQueue() {
-    queue* new_queue = (queue*)malloc(sizeof(queue));
+
+Queue* createQueue() {
+    Queue* new_queue = (Queue*)malloc(sizeof(*new_queue));
     new_queue ->head = NULL;
     new_queue ->tail = NULL;
     new_queue->queue_size =0;
-    return new_queue
+    return new_queue;
 }
 
-void enqueue(int connfd,struct timeval current_time, queue* queue)
+void enqueue(int connfd,struct timeval current_time, Queue* queue)
 {
-    node* node = (node*)malloc(sizeof(node));
+    Node* node = (Node*)malloc(sizeof(*node));
     node->data = connfd;
     node ->next = NULL;
     node->req_arrival = current_time;
@@ -30,13 +32,13 @@ void enqueue(int connfd,struct timeval current_time, queue* queue)
     queue->queue_size++;
 }
 
-node* dequeue(queue* queue)
+Node* dequeue(Queue* queue)
 {
     if(queue->queue_size == 0) { //queue is empty
         return NULL;
     }
-    node* node = queue->head;
-    node* new_head = queue->head->next;
+    Node* node = queue->head;
+    Node* new_head = queue->head->next;
     if(queue->head == queue ->tail) // only one node in queue
     {
         queue->head = NULL;
@@ -50,9 +52,9 @@ node* dequeue(queue* queue)
     return node;
 }
 
-int deleteNode(queue* queue, int position)
+int deleteNode(Queue* queue, int position)
 {
-    node* temp = queue->head;
+    Node* temp = queue->head;
     if (position == 0)
     {
         return dequeue(queue)->data;
@@ -60,8 +62,55 @@ int deleteNode(queue* queue, int position)
     for (int i=0; temp!=NULL && i<position-1; i++) // iterate until gets to the right position
         temp = temp->next;
     int data = temp->next->data;
-    node* new_next = temp->next->next; //update the queue
+    Node* new_next = temp->next->next; //update the queue
     temp->next = new_next;
     queue->queue_size--;
     return data;
+}
+
+static Node* ithNodeInQueue(Queue* queue, int i)
+{
+    if (queue->head == NULL || i >= queue->queue_size)
+        return NULL;
+
+    Node* it = queue->head;
+    for (int j = 0; j < i ; j++)
+    {
+        it = it->next;
+    }
+
+    return it;
+}
+
+void dropRandomNodes(Queue* queue)
+{
+    int drop_amount = ceil(queue->queue_size * 0.5);
+
+    Node* node_to_drop = NULL;
+    Node* pre_node_to_drop = NULL;
+    while (drop_amount > 0)
+    {
+        int i = rand() % (queue->queue_size); // rand() generates number between 0 to RAND_MAX 
+        node_to_drop = ithNodeInQueue(queue, i); // should not fail basically
+        pre_node_to_drop = ithNodeInQueue(queue, i - 1);
+        
+        Close(node_to_drop->data);
+        if (pre_node_to_drop != NULL)
+        {
+            pre_node_to_drop->next = node_to_drop->next;
+        }
+        else // in case node_to_drop is head
+        {
+            pre_node_to_drop = node_to_drop->next;
+            queue->head= pre_node_to_drop;
+        }
+
+        if (node_to_drop == queue->tail)
+        {
+            queue->tail = pre_node_to_drop; // if node_to_drop was head as well, then tail == NULL
+        }
+        node_to_drop->next = NULL;
+        free(node_to_drop);
+        drop_amount--;
+    }
 }
