@@ -175,8 +175,8 @@ void requestServeStatic(int fd, char *filename, int filesize, struct timeval sta
 }
 
 // handle a request
-void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool) {
-   
+void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool) 
+{
    int is_static;
    struct stat sbuf;
    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
@@ -219,8 +219,8 @@ void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_
       //////this thread has handled one more dynamic request
       requestServeDynamic(fd, filename, cgiargs, stat_req_arrival, stat_req_dispatch,thread_id, thread_pool);
    }
-
 }
+
 
 
 
@@ -269,6 +269,6 @@ void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_
 //       }
 //       requestServeDynamic(fd, filename, cgiargs);
 //    }
-}
+
 
 
