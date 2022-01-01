@@ -6,7 +6,7 @@
 #include "request.h"
 
 // requestError(      fd,    filename,        "404",    "Not found", "OS-HW3 Server could not find this file");
-void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg) 
+void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool)
 {
    char buf[MAXLINE], body[MAXBUF];
 
@@ -19,6 +19,14 @@ void requestError(int fd, char *cause, char *errnum, char *shortmsg, char *longm
 
    // Write out the header information for this response
    sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
+   ////////////////////////////////////////////////
+   sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, stat_req_arrival.tv_sec,stat_req_arrival.tv_usec);
+   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stat_req_dispatch.tv_sec, stat_req_dispatch.tv_usec);
+   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, thread_pool->threads[thread_id].thread_id);
+   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_count);
+   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_static);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_dynamic);
+   //////////////////////////////////////////////////
    Rio_writen(fd, buf, strlen(buf));
    printf("%s", buf);
 
@@ -101,7 +109,7 @@ void requestGetFiletype(char *filename, char *filetype)
       strcpy(filetype, "text/plain");
 }
 
-void requestServeDynamic(int fd, char *filename, char *cgiargs)
+void requestServeDynamic(int fd, char *filename, char *cgiargs, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool)
 {
    char buf[MAXLINE], *emptylist[] = {NULL};
 
@@ -109,7 +117,14 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs)
    // The CGI script has to finish writing out the header.
    sprintf(buf, "HTTP/1.0 200 OK\r\n");
    sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
-
+/////////////////////////////////////////////////////
+   sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, stat_req_arrival.tv_sec,stat_req_arrival.tv_usec);
+   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stat_req_dispatch.tv_sec, stat_req_dispatch.tv_usec);
+   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, thread_pool->threads[thread_id].thread_id);
+   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_count);
+   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_static);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_dynamic);
+///////////////////////////////////////////////////
    Rio_writen(fd, buf, strlen(buf));
 
    if (Fork() == 0) {
@@ -123,7 +138,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs)
 }
 
 
-void requestServeStatic(int fd, char *filename, int filesize) 
+void requestServeStatic(int fd, char *filename, int filesize, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool)
 {
    int srcfd;
    char *srcp, filetype[MAXLINE], buf[MAXBUF];
@@ -140,6 +155,14 @@ void requestServeStatic(int fd, char *filename, int filesize)
    // put together response
    sprintf(buf, "HTTP/1.0 200 OK\r\n");
    sprintf(buf, "%sServer: OS-HW3 Web Server\r\n", buf);
+   ////////////////////////////////////////////////////////
+   sprintf(buf, "%sStat-Req-Arrival:: %lu.%06lu\r\n", buf, stat_req_arrival.tv_sec,stat_req_arrival.tv_usec);
+   sprintf(buf, "%sStat-Req-Dispatch:: %lu.%06lu\r\n", buf, stat_req_dispatch.tv_sec, stat_req_dispatch.tv_usec);
+   sprintf(buf, "%sStat-Thread-Id:: %d\r\n", buf, thread_pool->threads[thread_id].thread_id);
+   sprintf(buf, "%sStat-Thread-Count:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_count);
+   sprintf(buf, "%sStat-Thread-Static:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_static);
+   sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, thread_pool->threads[thread_id].stat_thread_dynamic);
+   ////////////////////////////////////////////////
    sprintf(buf, "%sContent-Length: %d\r\n", buf, filesize);
    sprintf(buf, "%sContent-Type: %s\r\n\r\n", buf, filetype);
 
@@ -152,46 +175,99 @@ void requestServeStatic(int fd, char *filename, int filesize)
 }
 
 // handle a request
-void requestHandle(int fd)
-{
-
+void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool) {
    int is_static;
    struct stat sbuf;
    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
    char filename[MAXLINE], cgiargs[MAXLINE];
    rio_t rio;
-
+   ///////same as before
+   thread_pool->threads[thread_id].stat_thread_count++; 
+   /// number of request this thread handle ++
    Rio_readinitb(&rio, fd);
    Rio_readlineb(&rio, buf, MAXLINE);
    sscanf(buf, "%s %s %s", method, uri, version);
 
    printf("%s %s %s\n", method, uri, version);
-
    if (strcasecmp(method, "GET")) {
-      requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method");
+      requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method", stat_req_arrival, stat_req_dispatch, thread_id, thread_pool);
       return;
    }
    requestReadhdrs(&rio);
+    
 
    is_static = requestParseURI(uri, filename, cgiargs);
    if (stat(filename, &sbuf) < 0) {
-      requestError(fd, filename, "404", "Not found", "OS-HW3 Server could not find this file");
+      requestError(fd, filename, "404", "Not found", "OS-HW3 Server could not find this file", stat_req_arrival, stat_req_dispatch, thread_id, thread_pool);
       return;
    }
-
    if (is_static) {
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
-         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file");
+         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file", stat_req_arrival, stat_req_dispatch, thread_id, thread_pool);
          return;
       }
-      requestServeStatic(fd, filename, sbuf.st_size);
+      thread_pool->threads[thread_id].stat_thread_static++;
+      ////// this thread has handled one more static request
+      requestServeStatic(fd, filename, sbuf.st_size, stat_req_arrival, stat_req_dispatch, thread_id, thread_pool);
    } else {
       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
-         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
+         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program", stat_req_arrival, stat_req_dispatch,  thread_id, thread_pool);
          return;
       }
-      requestServeDynamic(fd, filename, cgiargs);
+      thread_pool->threads[thread_id].stat_thread_dynamic++;
+      //////this thread has handled one more dynamic request
+      requestServeDynamic(fd, filename, cgiargs, stat_req_arrival, stat_req_dispatch,thread_id, thread_pool);
    }
+
+}
+
+
+
+
+
+
+
+
+// void requestHandle(int fd)
+// {
+
+//    int is_static;
+//    struct stat sbuf;
+//    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
+//    char filename[MAXLINE], cgiargs[MAXLINE];
+//    rio_t rio;
+
+//    Rio_readinitb(&rio, fd);
+//    Rio_readlineb(&rio, buf, MAXLINE);
+//    sscanf(buf, "%s %s %s", method, uri, version);
+
+//    printf("%s %s %s\n", method, uri, version);
+
+//    if (strcasecmp(method, "GET")) {
+//       requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method");
+//       return;
+//    }
+//    requestReadhdrs(&rio);
+
+//    is_static = requestParseURI(uri, filename, cgiargs);
+//    if (stat(filename, &sbuf) < 0) {
+//       requestError(fd, filename, "404", "Not found", "OS-HW3 Server could not find this file");
+//       return;
+//    }
+
+//    if (is_static) {
+//       if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
+//          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file");
+//          return;
+//       }
+//       requestServeStatic(fd, filename, sbuf.st_size);
+//    } else {
+//       if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
+//          requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
+//          return;
+//       }
+//       requestServeDynamic(fd, filename, cgiargs);
+//    }
 }
 
 

@@ -21,6 +21,6 @@ void enqueue(int connfd, struct timeval current_time, Queue* queue);
 Node* dequeue(Queue* queue);
 //int removeFromQueue(Queue* queue, int index);
 int deleteNode(Queue* queue, int position);
-queue* createQueue();
+Queue* createQueue();
 void dropRandomNodes(Queue* queue);
 #endif

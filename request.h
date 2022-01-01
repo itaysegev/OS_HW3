@@ -1,5 +1,5 @@
 #ifndef __REQUEST_H__
 
-void requestHandle(int fd);
-//void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool);
+//void requestHandle(int fd);
+void requestHandle(int fd, struct timeval stat_req_arrival, struct timeval stat_req_dispatch, int thread_id, ThreadPool* thread_pool);
 #endif
