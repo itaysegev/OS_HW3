@@ -50,7 +50,7 @@ void* thread_handle_request(void* args) {
         current_time.tv_sec = difftime(current_time.tv_sec, curr_task->req_arrival.tv_sec);
         current_time.tv_usec = difftime(current_time.tv_usec, curr_task->req_arrival.tv_usec);
         struct timeval req_dispatch = current_time;
-        requestHandle(curr_task->value, curr_task->req_arrival, req_dispatch, thread_id, thread_pool);
+        requestHandle(curr_task->data, curr_task->req_arrival, req_dispatch, thread_id, thread_pool);
         //this line is for advanced implementation, for request handle.
         //requestHandle(curr_task->data); // request.h for more info
         Close(curr_task->data); // same as server.c 
