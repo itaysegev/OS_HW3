@@ -6,7 +6,7 @@
 
 
 Queue* createQueue() {
-    Queue* new_queue = (Queue*)malloc(sizeof(*new_queue));
+    Queue* new_queue = (Queue*)malloc(sizeof(Queue));
     new_queue ->head = NULL;
     new_queue ->tail = NULL;
     new_queue->queue_size =0;
@@ -15,7 +15,7 @@ Queue* createQueue() {
 
 void enqueue(int connfd,struct timeval current_time, Queue* queue)
 {
-    Node* node = (Node*)malloc(sizeof(*node));
+    Node* node = (Node*)malloc(sizeof(Node));
     node->data = connfd;
     node ->next = NULL;
     node->req_arrival = current_time;
