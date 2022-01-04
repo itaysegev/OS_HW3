@@ -9,17 +9,17 @@ typedef struct arg_struct
 } handle_func_args; // arguments for 
 
 
-static thread* createThreadsArr(int num_of_threads, ThreadPool* thread_pool) {
-    thread* new_arr = (thread*)malloc(num_of_threads * sizeof(thread)); 
-    for(int i = 0 ; i < num_of_threads ; i++) {
-        new_arr[i].thread_id = i;
-        handle_func_args* args = (handle_func_args*) malloc(sizeof(handle_func_args));
-        args->thread_pool = thread_pool;
-        args->thread_id = i;
-        pthread_create(&(thread_pool->threads[i].thread), NULL ,thread_handle_request, (void*)args);
-    }
-    return new_arr;
-}
+// static thread* createThreadsArr(int num_of_threads, ThreadPool* thread_pool) {
+//     thread* new_arr = (thread*)malloc(num_of_threads * sizeof(thread)); 
+//     for(int i = 0 ; i < num_of_threads ; i++) {
+//         new_arr[i].thread_id = i;
+//         handle_func_args* args = (handle_func_args*) malloc(sizeof(handle_func_args));
+//         args->thread_pool = thread_pool;
+//         args->thread_id = i;
+//         pthread_create(&(thread_pool->threads[i].thread), NULL ,thread_handle_request, (void*)args);
+//     }
+//     return new_arr;
+// }
 
 // ThreadPool* create_new_pool(int num_of_threads) {
 //     ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(ThreadPool));
@@ -36,10 +36,11 @@ ThreadPool* create_new_pool(int num_of_threads) {
     ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(ThreadPool));
     thread_pool->num_of_threads = num_of_threads;
     //thread_pool->max_requests = max_requests;
-    thread_pool->waiting_tasks_queue = (Queue*)malloc(sizeof(Queue));
-    thread_pool->waiting_tasks_queue ->head = NULL;
-    thread_pool->waiting_tasks_queue ->tail = NULL;
-    thread_pool->waiting_tasks_queue->queue_size =0;
+    thread_pool->waiting_tasks_queue = createQueue();
+    // thread_pool->waiting_tasks_queue = (Queue*)malloc(sizeof(Queue));
+    // thread_pool->waiting_tasks_queue ->head = NULL;
+    // thread_pool->waiting_tasks_queue ->tail = NULL;
+    // thread_pool->waiting_tasks_queue->queue_size =0;
     thread_pool->threads = (thread*)malloc(num_of_threads * sizeof(thread));
     for(int i = 0 ; i < num_of_threads ; i++)
     {
