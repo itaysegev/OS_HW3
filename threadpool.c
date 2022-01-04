@@ -22,7 +22,7 @@ static thread* createThreadsArr(int num_of_threads, ThreadPool* thread_pool) {
 }
 
 ThreadPool* create_new_pool(int num_of_threads) {
-    ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(*thread_pool));
+    ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(ThreadPool));
     thread_pool->num_of_threads = num_of_threads;
     thread_pool->waiting_tasks_queue = createQueue();
     thread_pool->threads = createThreadsArr(num_of_threads, thread_pool);
