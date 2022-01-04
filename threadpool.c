@@ -21,15 +21,38 @@ static thread* createThreadsArr(int num_of_threads, ThreadPool* thread_pool) {
     return new_arr;
 }
 
+// ThreadPool* create_new_pool(int num_of_threads) {
+//     ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(ThreadPool));
+//     thread_pool->num_of_threads = num_of_threads;
+//     thread_pool->waiting_tasks_queue = createQueue();
+//     thread_pool->threads = createThreadsArr(num_of_threads, thread_pool);
+//     pthread_mutex_init(&(thread_pool->mutex), NULL);
+//     pthread_cond_init(&(thread_pool->cond), NULL);
+//     return thread_pool;
+// }
+
+
 ThreadPool* create_new_pool(int num_of_threads) {
     ThreadPool* thread_pool = (ThreadPool*) malloc(sizeof(ThreadPool));
     thread_pool->num_of_threads = num_of_threads;
-    thread_pool->waiting_tasks_queue = createQueue();
-    thread_pool->threads = createThreadsArr(num_of_threads, thread_pool);
-    pthread_mutex_init(&(thread_pool->mutex), NULL);
-    pthread_cond_init(&(thread_pool->cond), NULL);
+    //thread_pool->max_requests = max_requests;
+    thread_pool->waiting_tasks_queue = (Queue*)malloc(sizeof(Queue));
+    thread_pool->waiting_tasks_queue ->head = NULL;
+    thread_pool->waiting_tasks_queue ->tail = NULL;
+    thread_pool->waiting_tasks_queue->queue_size =0;
+    thread_pool->threads = (thread*)malloc(num_of_threads * sizeof(thread));
+    for(int i = 0 ; i < num_of_threads ; i++)
+    {
+        thread_pool->threads[i].thread_id = i;
+        thread_pool->threads[i].stat_thread_count = 0;
+        thread_pool->threads[i].stat_thread_static = 0;
+        thread_pool->threads[i].stat_thread_dynamic = 0;
+        handle_func_args* args = (handle_func_args*) malloc(sizeof(handle_func_args));
+        args->thread_pool = thread_pool;
+        args->thread_id = i;
+        pthread_create(&(thread_pool->threads[i].thread), NULL ,thread_handle_request, (void*)args);
+    }
     return thread_pool;
-}
 
 
 void* thread_handle_request(void* args) {
