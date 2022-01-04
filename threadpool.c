@@ -53,7 +53,7 @@ ThreadPool* create_new_pool(int num_of_threads) {
         pthread_create(&(thread_pool->threads[i].thread), NULL ,thread_handle_request, (void*)args);
     }
     return thread_pool;
-
+}
 
 void* thread_handle_request(void* args) {
     handle_func_args* curr_args = (handle_func_args*) args;
