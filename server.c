@@ -105,41 +105,41 @@ int main(int argc, char *argv[])
             pthread_mutex_unlock(&(thread_pool->mutex));
         }
 
-        // else if (strcmp(schedalg, "random") == 0) {
-        //     pthread_mutex_lock(&(thread_pool->mutex));
-        //     if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
-        //         dropRandomNodes(thread_pool->waiting_tasks_queue);
-        //         enqueue(connfd, current_time, thread_pool->waiting_tasks_queue); // add the new request
-        //     }
-        //     else {
-        //         enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);
-        //     }
-        //     pthread_cond_signal(&(thread_pool->cond));
-        //     pthread_mutex_unlock(&(thread_pool->mutex));
-        // }
-        else if(strcmp(schedalg,"random") == 0) { 
+        else if (strcmp(schedalg, "random") == 0) {
             pthread_mutex_lock(&(thread_pool->mutex));
             if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
-                if(thread_pool->waiting_tasks_queue->queue_size == 0) {
-                    Close(connfd);
-                    pthread_mutex_unlock(&(thread_pool->mutex));
-                    continue;
-                }
-                int connsToDropCount = ceil((thread_pool->waiting_tasks_queue->queue_size)/2.0);
-                printf("queue size before drop %d \n", thread_pool->waiting_tasks_queue->queue_size);
-                for(int i=0; i < connsToDropCount; i++)
-                {
-                    int randomRequest = abs(rand()) % (thread_pool->waiting_tasks_queue->queue_size - 1);
-                    int removed_connfd = deleteNode(thread_pool->waiting_tasks_queue, randomRequest);
-                    Close(removed_connfd);
-                }
-                printf("queue size after drop %d \n", thread_pool->waiting_tasks_queue->queue_size);
+                dropRandomNodes(thread_pool->waiting_tasks_queue);
+                enqueue(connfd, current_time, thread_pool->waiting_tasks_queue); // add the new request
             }
-            enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);
+            else {
+                enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);
+            }
             pthread_cond_signal(&(thread_pool->cond));
             pthread_mutex_unlock(&(thread_pool->mutex));
         }
-    }
+    //     else if(strcmp(schedalg,"random") == 0) { 
+    //         pthread_mutex_lock(&(thread_pool->mutex));
+    //         if (thread_pool->waiting_tasks_queue->queue_size + thread_pool->current_task_counter >= max_requests) {
+    //             if(thread_pool->waiting_tasks_queue->queue_size == 0) {
+    //                 Close(connfd);
+    //                 pthread_mutex_unlock(&(thread_pool->mutex));
+    //                 continue;
+    //             }
+    //             int connsToDropCount = ceil((thread_pool->waiting_tasks_queue->queue_size)/2.0);
+    //             printf("queue size before drop %d \n", thread_pool->waiting_tasks_queue->queue_size);
+    //             for(int i=0; i < connsToDropCount; i++)
+    //             {
+    //                 int randomRequest = abs(rand()) % (thread_pool->waiting_tasks_queue->queue_size - 1);
+    //                 int removed_connfd = deleteNode(thread_pool->waiting_tasks_queue, randomRequest);
+    //                 Close(removed_connfd);
+    //             }
+    //             printf("queue size after drop %d \n", thread_pool->waiting_tasks_queue->queue_size);
+    //         }
+    //         enqueue(connfd, current_time, thread_pool->waiting_tasks_queue);
+    //         pthread_cond_signal(&(thread_pool->cond));
+    //         pthread_mutex_unlock(&(thread_pool->mutex));
+    //     }
+    // }
 }
 
 
