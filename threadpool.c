@@ -26,8 +26,8 @@ ThreadPool* create_new_pool(int num_of_threads) {
     thread_pool->num_of_threads = num_of_threads;
     thread_pool->waiting_tasks_queue = createQueue();
     thread_pool->threads = createThreadsArr(num_of_threads, thread_pool);
-    //pthread_mutex_init(&(thread_pool->mutex), NULL);
-    //pthread_cond_init(&(thread_pool->cond), NULL);
+    pthread_mutex_init(&(thread_pool->mutex), NULL);
+    pthread_cond_init(&(thread_pool->cond), NULL);
     return thread_pool;
 }
 
