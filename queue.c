@@ -70,7 +70,7 @@ int deleteNode(Queue* queue, int position)
 
 static Node* ithNodeInQueue(Queue* queue, int i)
 {
-    if (queue->head == NULL || i >= queue->queue_size)
+    if (queue->head == NULL || i >= queue->queue_size || i < 0)
         return NULL;
 
     Node* it = queue->head;
@@ -111,6 +111,7 @@ void dropRandomNodes(Queue* queue)
         }
         node_to_drop->next = NULL;
         free(node_to_drop);
+        queue->queue_size--;
         drop_amount--;
     }
 }
